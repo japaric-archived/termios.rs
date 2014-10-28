@@ -1,0 +1,9 @@
+[package]
+
+name = "termios"
+version = "0.0.0"
+authors = ["Jorge Aparicio <japaricious@gmail.com>"]
+build = "make -C src/raw"
+
+[dependencies.rust-bindgen]
+git = "https://github.com/crabtw/rust-bindgen"
