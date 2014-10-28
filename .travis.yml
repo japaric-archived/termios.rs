@@ -1,0 +1,19 @@
+language: rust
+
+before_install:
+  - yes | sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4 main"
+  - yes | sudo add-apt-repository "deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main"
+  - sudo apt-get update
+
+install:
+  - sudo apt-get install --force-yes libclang-3.4-dev
+
+script:
+  - LIBCLANG_PATH=/usr/lib/llvm-3.4/lib cargo build --verbose
+  - make -C src/raw
+  - cat src/raw/ffi.rs
+  - cargo test --verbose
+  - cargo doc --verbose
+
+branches:
+  only: master
