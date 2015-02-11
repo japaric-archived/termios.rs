@@ -1,7 +1,9 @@
+#include <stdint.h>
 #include <termios.h>
 
 // Special control characters
 enum {
+    __CC = (uintptr_t)(-1),
     VEOF_ = VEOF,
     VEOL_ = VEOL,
     VEOL2_ = VEOL2,
@@ -21,7 +23,7 @@ enum {
     VTIME_ = VTIME,
     VSTATUS_ = VSTATUS,
     NCCS_ = NCCS,
-};
+}
 
 // Input flags
 enum {
@@ -49,6 +51,7 @@ enum {
     ONLCR_ = ONLCR,
     OXTABS_ = OXTABS,
     ONOEOT_ = ONOEOT,
+    // unimplemented features
     OCRNL_ = OCRNL,
     ONOCR_ = ONOCR,
     ONLRET_ = ONLRET,
@@ -132,7 +135,7 @@ enum {
     TCSADRAIN_ = TCSADRAIN,
     TCSAFLUSH_ = TCSAFLUSH,
     TCSASOFT_ = TCSASOFT,
-}
+};
 
 // Standard speeds
 enum {

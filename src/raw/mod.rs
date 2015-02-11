@@ -1,6 +1,8 @@
 //! Raw access to the `Termios` structure and its flags
 
-use std::default::Default;
+#[allow(dead_code, missing_docs, non_camel_case_types)]
+mod ffi;
+
 use std::fmt;
 
 pub use self::ffi::cc_t;
@@ -10,186 +12,205 @@ pub use self::ffi::tcflag_t;
 pub use self::ffi::Struct_termios as Termios;
 
 pub use self::ffi::{
-    cfgetospeed,
     cfgetispeed,
-    cfsetospeed,
-    cfsetispeed,
-    cfsetspeed,
-    tcgetattr,
-    tcsetattr,
+    cfgetospeed,
     cfmakeraw,
-    tcsendbreak,
+    cfsetispeed,
+    cfsetospeed,
+    cfsetspeed,
     tcdrain,
-    tcflush,
     tcflow,
+    tcflush,
+    tcgetattr,
+    tcsendbreak,
+    tcsetattr,
+};
+
+#[cfg(target_os = "freebsd")]
+pub use self::ffi::{
+    cfmakesane,
+    tcgetsid,
+    tcsetsid,
+};
+
+#[cfg(target_os = "linux")]
+pub use self::ffi::{
     tcgetsid,
 };
 
-impl Default for Termios {
-    #[cfg(target_os = "linux")]
-    fn default() -> Termios {
-        Termios {
-            c_cc: [0, ..NCCS],
-            c_cflag: 0,
-            c_iflag: 0,
-            c_ispeed: 0,
-            c_lflag: 0,
-            c_line: 0,
-            c_oflag: 0,
-            c_ospeed: 0,
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    fn default() -> Termios {
-        Termios {
-            c_cc: [0, ..NCCS],
-            c_cflag: 0,
-            c_iflag: 0,
-            c_ispeed: 0,
-            c_lflag: 0,
-            c_oflag: 0,
-            c_ospeed: 0,
-        }
-    }
-}
-
-// XXX (Show) Formatting may change
-impl fmt::Show for Termios {
+// XXX (Debug) Formatting may change
+impl fmt::Debug for Termios {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(writeln!(f, "iflag:\t{}", self.c_iflag));
-        try!(writeln!(f, "oflag:\t{}", self.c_oflag));
-        try!(writeln!(f, "cflag:\t{}", self.c_cflag));
-        try!(writeln!(f, "lflag:\t{}", self.c_lflag));
-        try!(writeln!(f, "cc:\t{}", self.c_cc[]));
-        try!(writeln!(f, "ispeed:\t{}", self.c_ispeed));
-        try!(write!(f, "ospeed:\t{}", self.c_ospeed));
+        try!(writeln!(f, "iflag:\t{:?}", self.c_iflag));
+        try!(writeln!(f, "oflag:\t{:?}", self.c_oflag));
+        try!(writeln!(f, "cflag:\t{:?}", self.c_cflag));
+        try!(writeln!(f, "lflag:\t{:?}", self.c_lflag));
+        try!(writeln!(f, "cc:\t{:?}", self.c_cc));
+        try!(writeln!(f, "ispeed:\t{:?}", self.c_ispeed));
+        try!(write!(f, "ospeed:\t{:?}", self.c_ospeed));
         Ok(())
     }
 }
 
-#[allow(dead_code, non_camel_case_types)]
-mod ffi;
-
 // FIXME (concat_idents!) All these macros should use only one input
 
 macro_rules! cc {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: uint = self::ffi::$ffi as uint;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 cc! {
-    VINTR_ = VINTR,
-    VQUIT_ = VQUIT,
-    VERASE_ = VERASE,
-    VKILL_ = VKILL,
+    NCCS_ = NCCS,
+    VDISCARD_ = VDISCARD,
     VEOF_ = VEOF,
-    VTIME_ = VTIME,
+    VEOL2_ = VEOL2,
+    VEOL_ = VEOL,
+    VERASE_ = VERASE,
+    VINTR_ = VINTR,
+    VKILL_ = VKILL,
+    VLNEXT_ = VLNEXT,
     VMIN_ = VMIN,
+    VQUIT_ = VQUIT,
+    VREPRINT_ = VREPRINT,
     VSTART_ = VSTART,
     VSTOP_ = VSTOP,
     VSUSP_ = VSUSP,
-    VEOL_ = VEOL,
-    VREPRINT_ = VREPRINT,
-    VDISCARD_ = VDISCARD,
+    VTIME_ = VTIME,
     VWERASE_ = VWERASE,
-    VLNEXT_ = VLNEXT,
-    VEOL2_ = VEOL2,
-    NCCS_ = NCCS,
+}
+
+#[cfg(target_os = "freebsd")]
+cc! {
+    VDSUSP_ = VDSUSP,
+    VERASE2_ = VERASE2,
+    VSTATUS_ = VSTATUS,
 }
 
 #[cfg(target_os = "linux")]
 cc! {
-  VSWTC_ = VSWTC,
+    VSWTC_ = VSWTC,
 }
 
 #[cfg(target_os = "macos")]
 cc! {
-  VDSUSP_ = VDSUSP,
-  VSTATUS_ = VSTATUS,
+    VDSUSP_ = VDSUSP,
+    VSTATUS_ = VSTATUS,
 }
 
 macro_rules! iflag {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: tcflag_t = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 iflag! {
-    IGNBRK_ = IGNBRK,
     BRKINT_ = BRKINT,
+    ICRNL_ = ICRNL,
+    IGNBRK_ = IGNBRK,
+    IGNCR_ = IGNCR,
     IGNPAR_ = IGNPAR,
-    PARMRK_ = PARMRK,
+    IMAXBEL_ = IMAXBEL,
+    INLCR_ = INLCR,
     INPCK_ = INPCK,
     ISTRIP_ = ISTRIP,
-    INLCR_ = INLCR,
-    IGNCR_ = IGNCR,
-    ICRNL_ = ICRNL,
-    IXON_ = IXON,
     IXANY_ = IXANY,
     IXOFF_ = IXOFF,
-    IMAXBEL_ = IMAXBEL,
-    IUTF8_ = IUTF8,
+    IXON_ = IXON,
+    PARMRK_ = PARMRK,
 }
 
 #[cfg(target_os = "linux")]
 iflag! {
     IUCLC_ = IUCLC,
+    IUTF8_ = IUTF8,
+}
+
+#[cfg(target_os = "macos")]
+iflag! {
+    IUTF8_ = IUTF8,
 }
 
 macro_rules! oflag {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: tcflag_t = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 oflag! {
-    OPOST_ = OPOST,
-    ONLCR_ = ONLCR,
     OCRNL_ = OCRNL,
-    ONOCR_ = ONOCR,
+    ONLCR_ = ONLCR,
     ONLRET_ = ONLRET,
-    OFILL_ = OFILL,
-    OFDEL_ = OFDEL,
+    ONOCR_ = ONOCR,
+    OPOST_ = OPOST,
+}
+
+#[cfg(target_os = "freebsd")]
+oflag! {
+    ONOEOT_ = ONOEOT,
+    TAB0_ = TAB0,
+    TAB3_ = TAB3,
+    TABDLY_ = TABDLY,
 }
 
 #[cfg(target_os = "linux")]
 oflag! {
+    OFDEL_ = OFDEL,
+    OFILL_ = OFILL,
     OLCUC_ = OLCUC,
 }
 
 #[cfg(target_os = "macos")]
 oflag! {
-  OXTABS_ = OXTABS,
-  ONOEOT_ = ONOEOT,
-  NLDLY_ = NLDLY,
-  TABDLY_ = TABDLY,
-  CRDLY_ = CRDLY,
-  FFDLY_ = FFDLY,
-  BSDLY_ = BSDLY,
-  VTDLY_ = VTDLY,
+    BSDLY_ = BSDLY,
+    CRDLY_ = CRDLY,
+    FFDLY_ = FFDLY,
+    NLDLY_ = NLDLY,
+    OFDEL_ = OFDEL,
+    OFILL_ = OFILL,
+    ONOEOT_ = ONOEOT,
+    OXTABS_ = OXTABS,
+    TABDLY_ = TABDLY,
+    VTDLY_ = VTDLY,
 }
 
 macro_rules! cflag {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: tcflag_t = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 cflag! {
-    CSIZE_ = CSIZE,
+    CLOCAL_ = CLOCAL,
+    CREAD_ = CREAD,
+    CRTSCTS_ = CRTSCTS,
     CS5_ = CS5,
     CS6_ = CS6,
     CS7_ = CS7,
     CS8_ = CS8,
+    CSIZE_ = CSIZE,
     CSTOPB_ = CSTOPB,
-    CREAD_ = CREAD,
+    HUPCL_ = HUPCL,
     PARENB_ = PARENB,
     PARODD_ = PARODD,
-    HUPCL_ = HUPCL,
-    CLOCAL_ = CLOCAL,
-    CRTSCTS_ = CRTSCTS,
+}
+
+#[cfg(target_os = "freebsd")]
+cflag! {
+    CCAR_OFLOW_ = CCAR_OFLOW,
+    CCTS_OFLOW_ = CCTS_OFLOW,
+    CDSR_OFLOW_ = CDSR_OFLOW,
+    CDTR_IFLOW_ = CDTR_IFLOW,
+    CIGNORE_ = CIGNORE,
+    CRTS_IFLOW_ = CRTS_IFLOW,
 }
 
 #[cfg(target_os = "linux")]
@@ -200,37 +221,45 @@ cflag! {
 
 #[cfg(target_os = "macos")]
 cflag! {
-    CIGNORE_ = CIGNORE,
-    CCTS_OFLOW_ = CCTS_OFLOW,
-    CRTS_IFLOW_ = CRTS_IFLOW,
-    CDTR_IFLOW_ = CDTR_IFLOW,
-    CDSR_OFLOW_ = CDSR_OFLOW,
     CCAR_OFLOW_ = CCAR_OFLOW,
+    CCTS_OFLOW_ = CCTS_OFLOW,
+    CDSR_OFLOW_ = CDSR_OFLOW,
+    CDTR_IFLOW_ = CDTR_IFLOW,
+    CIGNORE_ = CIGNORE,
+    CRTS_IFLOW_ = CRTS_IFLOW,
     MDMBUF_ = MDMBUF,
 }
 
 macro_rules! lflag {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: tcflag_t = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 lflag! {
-    ISIG_ = ISIG,
-    ICANON_ = ICANON,
-    ECHO_ = ECHO,
+    ECHOCTL_ = ECHOCTL,
     ECHOE_ = ECHOE,
+    ECHOKE_ = ECHOKE,
     ECHOK_ = ECHOK,
     ECHONL_ = ECHONL,
-    NOFLSH_ = NOFLSH,
-    TOSTOP_ = TOSTOP,
-    ECHOCTL_ = ECHOCTL,
     ECHOPRT_ = ECHOPRT,
-    ECHOKE_ = ECHOKE,
-    FLUSHO_ = FLUSHO,
-    PENDIN_ = PENDIN,
-    IEXTEN_ = IEXTEN,
+    ECHO_ = ECHO,
     EXTPROC_ = EXTPROC,
+    FLUSHO_ = FLUSHO,
+    ICANON_ = ICANON,
+    IEXTEN_ = IEXTEN,
+    ISIG_ = ISIG,
+    NOFLSH_ = NOFLSH,
+    PENDIN_ = PENDIN,
+    TOSTOP_ = TOSTOP,
+}
+
+#[cfg(target_os = "freebsd")]
+lflag! {
+    ALTWERASE_ = ALTWERASE,
+    NOKERNINFO_ = NOKERNINFO,
 }
 
 #[cfg(target_os = "linux")]
@@ -245,40 +274,51 @@ lflag! {
 }
 
 macro_rules! tcflow {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: ::libc::c_int = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 tcflow! {
-    TCOOFF_ = TCOOFF,
-    TCOON_ = TCOON,
     TCIOFF_ = TCIOFF,
     TCION_ = TCION,
+    TCOOFF_ = TCOOFF,
+    TCOON_ = TCOON,
 }
 
 macro_rules! tcflush {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: ::libc::c_int = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 tcflush! {
     TCIFLUSH_ = TCIFLUSH,
-    TCOFLUSH_ = TCOFLUSH,
     TCIOFLUSH_ = TCIOFLUSH,
+    TCOFLUSH_ = TCOFLUSH,
 }
 
 macro_rules! tcsetattr {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: ::libc::c_int = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 tcsetattr! {
-    TCSANOW_ = TCSANOW,
     TCSADRAIN_ = TCSADRAIN,
     TCSAFLUSH_ = TCSAFLUSH,
+    TCSANOW_ = TCSANOW,
+}
+
+#[cfg(target_os = "freebsd")]
+tcsetattr! {
+    TCSASOFT_ = TCSASOFT,
 }
 
 #[cfg(target_os = "macos")]
@@ -287,41 +327,49 @@ tcsetattr! {
 }
 
 macro_rules! baud {
-    ($($ffi:ident = $ident:ident,)+) => {$(
-        pub const $ident: speed_t = self::ffi::$ffi;)+
+    ($($ffi:ident = $ident:ident,)+) => {
+        $(
+            pub use self::ffi::$ffi as $ident;
+        )+
     }
 }
 
 baud! {
     B0_ = B0,
-    B50_ = B50,
-    B75_ = B75,
     B110_ = B110,
+    B115200_ = B115200,
+    B1200_ = B1200,
     B134_ = B134,
     B150_ = B150,
-    B200_ = B200,
-    B300_ = B300,
-    B600_ = B600,
-    B1200_ = B1200,
     B1800_ = B1800,
-    B2400_ = B2400,
-    B4800_ = B4800,
-    B9600_ = B9600,
     B19200_ = B19200,
+    B200_ = B200,
+    B230400_ = B230400,
+    B2400_ = B2400,
+    B300_ = B300,
     B38400_ = B38400,
+    B4800_ = B4800,
+    B50_ = B50,
+    B57600_ = B57600,
+    B600_ = B600,
+    B75_ = B75,
+    B9600_ = B9600,
     EXTA_ = EXTA,
     EXTB_ = EXTB,
-    B57600_ = B57600,
-    B115200_ = B115200,
-    B230400_ = B230400,
+}
+
+#[cfg(target_os = "freebsd")]
+baud! {
+    B14400_ = B14400,
+    B28800_ = B28800,
+    B460800_ = B460800,
+    B7200_ = B7200,
+    B76800_ = B76800,
+    B921600_ = B921600,
 }
 
 #[cfg(target_os = "linux")]
 baud! {
-    B460800_ = B460800,
-    B500000_ = B500000,
-    B576000_ = B576000,
-    B921600_ = B921600,
     B1000000_ = B1000000,
     B1152000_ = B1152000,
     B1500000_ = B1500000,
@@ -330,12 +378,16 @@ baud! {
     B3000000_ = B3000000,
     B3500000_ = B3500000,
     B4000000_ = B4000000,
+    B460800_ = B460800,
+    B500000_ = B500000,
+    B576000_ = B576000,
+    B921600_ = B921600,
 }
 
 #[cfg(target_os = "macos")]
 baud! {
-    B7200_ = B7200,
     B14400_ = B14400,
     B28800_ = B28800,
+    B7200_ = B7200,
     B76800_ = B76800,
 }

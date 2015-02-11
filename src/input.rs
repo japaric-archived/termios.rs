@@ -2,24 +2,31 @@
 
 use std::fmt;
 
-use {Clear, Set};
+use Termios;
+use raw::{tcflag_t, self};
+use self::Flag::*;
+use traits::{Clear, Contains, Set};
 
-use raw::{tcflag_t, mod};
-
+/// Input flags
+#[derive(Copy)]
 #[repr(C)]
 pub struct Flags(tcflag_t);
 
-impl fmt::Show for Flags {
+impl fmt::Debug for Flags {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut is_first = true;
 
-        for &bit in BITS.iter().filter(|&&bit| self.contains(bit)) {
-            if is_first {
-                is_first = false;
+        for &flag in &FLAGS {
+            let value = flag.to_raw();
 
-                try!(write!(f, "{}", bit));
-            } else {
-                try!(write!(f, " | {}", bit));
+            if self.0 & value == value {
+                if is_first {
+                    is_first = false;
+
+                    try!(write!(f, "{:?}", flag));
+                } else {
+                    try!(write!(f, " | {:?}", flag));
+                }
             }
         }
 
@@ -27,78 +34,89 @@ impl fmt::Show for Flags {
     }
 }
 
-static BITS: &'static [Bit] = &[
-    IGNBRK, BRKINT, IGNPAR, PARMRK, INPCK, ISTRIP, INLCR, IGNCR, ICRNL, IXON, IXANY, IXOFF,
-    IMAXBEL, IUTF8,
+const FLAGS: [Flag; 13] = [
+    BRKINT,
+    ICRNL,
+    IGNBRK,
+    IGNCR,
+    IGNPAR,
+    IMAXBEL,
+    INLCR,
+    INPCK,
+    ISTRIP,
+    IXANY,
+    IXOFF,
+    IXON,
+    PARMRK,
 ];
 
-#[deriving(Show)]
-pub enum Bit {
-    /// Ignore BREAK condition
-    IGNBRK,
+/// Standard input flags
+#[derive(Copy, Debug)]
+pub enum Flag {
     /// Map BREAK to SIGINTR
     BRKINT,
+    /// Map CR to NL (ala CRMOD)
+    ICRNL,
+    /// Ignore BREAK condition
+    IGNBRK,
+    /// Ignore CR
+    IGNCR,
     /// Ignore (discard) parity errors
     IGNPAR,
-    /// Mark parity and framing errors
-    PARMRK,
+    /// Ring bell on input queue full
+    IMAXBEL,
+    /// Map NL into CR
+    INLCR,
     /// Enable checking of parity errors
     INPCK,
     /// Strip 8th bit off chars
     ISTRIP,
-    /// Map NL into CR
-    INLCR,
-    /// Ignore CR
-    IGNCR,
-    /// Map CR to NL (ala CRMOD)
-    ICRNL,
-    /// Enable output flow control
-    IXON,
     /// Any char will restart after stop
     IXANY,
     /// Enable input control flow
     IXOFF,
-    /// Ring bell on input queue full
-    IMAXBEL,
-    /// Maintain state for UTF-8 VERASE
-    IUTF8,
+    /// Enable output flow control
+    IXON,
+    /// Mark parity and framing errors
+    PARMRK,
 }
 
-impl Bit {
+impl Flag {
     fn to_raw(&self) -> tcflag_t {
         match *self {
-            IGNBRK => raw::IGNBRK,
             BRKINT => raw::BRKINT,
+            ICRNL => raw::ICRNL,
+            IGNBRK => raw::IGNBRK,
+            IGNCR => raw::IGNCR,
             IGNPAR => raw::IGNPAR,
-            PARMRK => raw::PARMRK,
+            IMAXBEL => raw::IMAXBEL,
+            INLCR => raw::INLCR,
             INPCK => raw::INPCK,
             ISTRIP => raw::ISTRIP,
-            INLCR => raw::INLCR,
-            IGNCR => raw::IGNCR,
-            ICRNL => raw::ICRNL,
-            IXON => raw::IXON,
             IXANY => raw::IXANY,
             IXOFF => raw::IXOFF,
-            IMAXBEL => raw::IMAXBEL,
-            IUTF8 => raw::IUTF8,
+            IXON => raw::IXON,
+            PARMRK => raw::PARMRK,
         }
     }
 }
 
-impl Clear<Bit> for Flags {
-    fn clear(&mut self, bit: Bit) {
-        self.0 &= !(bit.to_raw())
+impl Clear<Flag> for Termios {
+    fn clear(&mut self, flag: Flag) {
+        self.iflag.0 &= !flag.to_raw()
     }
 }
 
-impl Set<Bit> for Flags {
-    fn contains(&self, bit: Bit) -> bool {
-        let bit = bit.to_raw();
+impl Contains<Flag> for Termios {
+    fn contains(&self, flag: Flag) -> bool {
+        let flag = flag.to_raw();
 
-        self.0 & bit == bit
+        self.iflag.0 & flag == flag
     }
+}
 
-    fn set(&mut self, bit: Bit) {
-        self.0 |= bit.to_raw()
+impl Set<Flag> for Termios {
+    fn set(&mut self, flag: Flag) {
+        self.iflag.0 |= flag.to_raw()
     }
 }

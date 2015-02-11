@@ -1,26 +1,30 @@
+#include <stdint.h>
 #include <termios.h>
 
 // Special control characters
 enum {
+    __CC = (uintptr_t)(-1),
+    VEOF_ = VEOF,
+    VEOL_ = VEOL,
+    VEOL2_ = VEOL2,
+    VERASE_ = VERASE,
+    VWERASE_ = VWERASE,
+    VKILL_ = VKILL,
+    VREPRINT_ = VREPRINT,
+    VERASE2_ = VERASE2,
     VINTR_ = VINTR,
     VQUIT_ = VQUIT,
-    VERASE_ = VERASE,
-    VKILL_ = VKILL,
-    VEOF_ = VEOF,
-    VTIME_ = VTIME,
-    VMIN_ = VMIN,
-    VSWTC_ = VSWTC,
+    VSUSP_ = VSUSP,
+    VDSUSP_ = VDSUSP,
     VSTART_ = VSTART,
     VSTOP_ = VSTOP,
-    VSUSP_ = VSUSP,
-    VEOL_ = VEOL,
-    VREPRINT_ = VREPRINT,
-    VDISCARD_ = VDISCARD,
-    VWERASE_ = VWERASE,
     VLNEXT_ = VLNEXT,
-    VEOL2_ = VEOL2,
+    VDISCARD_ = VDISCARD,
+    VMIN_ = VMIN,
+    VTIME_ = VTIME,
+    VSTATUS_ = VSTATUS,
     NCCS_ = NCCS,
-};
+}
 
 // Input flags
 enum {
@@ -34,30 +38,30 @@ enum {
     INLCR_ = INLCR,
     IGNCR_ = IGNCR,
     ICRNL_ = ICRNL,
-    IUCLC_ = IUCLC,
     IXON_ = IXON,
-    IXANY_ = IXANY,
     IXOFF_ = IXOFF,
+    IXANY_ = IXANY,
     IMAXBEL_ = IMAXBEL,
-    IUTF8_ = IUTF8,
 };
 
 // Output flags
 enum {
     __OFLAG = (tcflag_t)(-1),
     OPOST_ = OPOST,
-    OLCUC_ = OLCUC,
     ONLCR_ = ONLCR,
+    TABDLY_ = TABDLY,
+    TAB0_ = TAB0,
+    TAB3_ = TAB3,
+    ONOEOT_ = ONOEOT,
     OCRNL_ = OCRNL,
     ONOCR_ = ONOCR,
     ONLRET_ = ONLRET,
-    OFILL_ = OFILL,
-    OFDEL_ = OFDEL,
 };
 
 // Control flags
 enum {
     __CFLAG = (tcflag_t)(-1),
+    CIGNORE_ = CIGNORE,
     CSIZE_ = CSIZE,
     CS5_ = CS5,
     CS6_ = CS6,
@@ -69,30 +73,34 @@ enum {
     PARODD_ = PARODD,
     HUPCL_ = HUPCL,
     CLOCAL_ = CLOCAL,
-    CIBAUD_ = CIBAUD,
-    CMSPAR_ = CMSPAR,
+    CCTS_OFLOW_ = CCTS_OFLOW,
     CRTSCTS_ = CRTSCTS,
+    CRTS_IFLOW_ = CRTS_IFLOW,
+    CDTR_IFLOW_ = CDTR_IFLOW,
+    CDSR_OFLOW_ = CDSR_OFLOW,
+    CCAR_OFLOW_ = CCAR_OFLOW,
 };
 
 // Local flags
 enum {
     __LFLAG = (tcflag_t)(-1),
-    ISIG_ = ISIG,
-    ICANON_ = ICANON,
-    XCASE_ = XCASE,
-    ECHO_ = ECHO,
+    ECHOKE_ = ECHOKE,
     ECHOE_ = ECHOE,
     ECHOK_ = ECHOK,
+    ECHO_ = ECHO,
     ECHONL_ = ECHONL,
-    NOFLSH_ = NOFLSH,
-    TOSTOP_ = TOSTOP,
-    ECHOCTL_ = ECHOCTL,
     ECHOPRT_ = ECHOPRT,
-    ECHOKE_ = ECHOKE,
-    FLUSHO_ = FLUSHO,
-    PENDIN_ = PENDIN,
+    ECHOCTL_ = ECHOCTL,
+    ISIG_ = ISIG,
+    ICANON_ = ICANON,
+    ALTWERASE_ = ALTWERASE,
     IEXTEN_ = IEXTEN,
     EXTPROC_ = EXTPROC,
+    TOSTOP_ = TOSTOP,
+    FLUSHO_ = FLUSHO,
+    NOKERNINFO_ = NOKERNINFO,
+    PENDIN_ = PENDIN,
+    NOFLSH_ = NOFLSH,
 };
 
 // tcflow
@@ -118,6 +126,7 @@ enum {
     TCSANOW_ = TCSANOW,
     TCSADRAIN_ = TCSADRAIN,
     TCSAFLUSH_ = TCSAFLUSH,
+    TCSASOFT_ = TCSASOFT,
 };
 
 // Standard speeds
@@ -139,21 +148,15 @@ enum {
     B9600_ = B9600,
     B19200_ = B19200,
     B38400_ = B38400,
-    EXTA_ = EXTA,
-    EXTB_ = EXTB,
+    B7200_ = B7200,
+    B14400_ = B14400,
+    B28800_ = B28800,
     B57600_ = B57600,
+    B76800_ = B76800,
     B115200_ = B115200,
     B230400_ = B230400,
     B460800_ = B460800,
-    B500000_ = B500000,
-    B576000_ = B576000,
     B921600_ = B921600,
-    B1000000_ = B1000000,
-    B1152000_ = B1152000,
-    B1500000_ = B1500000,
-    B2000000_ = B2000000,
-    B2500000_ = B2500000,
-    B3000000_ = B3000000,
-    B3500000_ = B3500000,
-    B4000000_ = B4000000,
+    EXTA_ = EXTA,
+    EXTB_ = EXTB,
 };
