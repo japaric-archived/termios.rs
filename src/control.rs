@@ -1,34 +1,29 @@
 //! Hardware control of terminal
 
 use std::fmt;
+use std::ops::{Index, IndexMut};
 
-use raw::{cc_t, tcflag_t, mod};
-use {Clear, Get, GetFrom, Set};
+use Termios;
+use raw::{cc_t, tcflag_t, self};
+use self::CSIZE::*;
+use self::Char::*;
+use self::Flag::*;
+use traits::{Clear, Contains, Get, GetFrom, Set};
 
+/// Control flags
+#[derive(Copy)]
 #[repr(C)]
 pub struct Flags(tcflag_t);
 
-impl fmt::Show for Flags {
+impl fmt::Debug for Flags {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut is_first = true;
+        try!(write!(f, "{:?}", CSIZE::from_raw(self.0 & CSIZE_MASK)));
 
-        for &bit in BITS.iter().filter(|&&bit| self.contains(bit)) {
-            if is_first {
-                is_first = false;
+        for &flag in &FLAGS {
+            let value = flag.to_raw();
 
-                try!(write!(f, "{}", bit));
-            } else {
-                try!(write!(f, " | {}", bit));
-            }
-        }
-
-        for &csize in CSIZES.iter().filter(|&&csize| self.contains(csize)) {
-            if is_first {
-                is_first = false;
-
-                try!(write!(f, "{}", csize));
-            } else {
-                try!(write!(f, " | {}", csize));
+            if self.0 & value == value {
+                try!(write!(f, " | {:?}", flag))
             }
         }
 
@@ -36,59 +31,71 @@ impl fmt::Show for Flags {
     }
 }
 
-static BITS: &'static [Bit] = &[CSTOPB, CREAD, PARENB, PARODD, HUPCL, CLOCAL, CRTSCTS];
-
-#[deriving(Show)]
-pub enum Bit {
-    /// Send 2 STOP bits
+const FLAGS: [Flag; 7] = [
+    CLOCAL,
+    CREAD,
+    CRTSCTS,
     CSTOPB,
+    HUPCL,
+    PARENB,
+    PARODD,
+];
+
+/// Standard control flags
+#[derive(Copy, Debug)]
+pub enum Flag {
+    /// Ignore modem status lines
+    CLOCAL,
     /// Enable receiver
     CREAD,
+    /// RTS/CTS full-duplex flow control
+    CRTSCTS,
+    /// Send 2 STOP bits
+    CSTOPB,
+    /// Hang up on last close
+    HUPCL,
     /// Parity enable
     PARENB,
     /// Odd parity, else even
     PARODD,
-    /// Hang up on last close
-    HUPCL,
-    /// Ignore modem status lines
-    CLOCAL,
-    /// RTS/CTS full-duplex flow control
-    CRTSCTS,
 }
 
-impl Bit {
+impl Flag {
     fn to_raw(&self) -> tcflag_t {
         match *self {
-            CSTOPB => raw::CSTOPB,
+            CLOCAL => raw::CLOCAL,
             CREAD => raw::CREAD,
+            CRTSCTS => raw::CRTSCTS,
+            CSTOPB => raw::CSTOPB,
+            HUPCL => raw::HUPCL,
             PARENB => raw::PARENB,
             PARODD => raw::PARODD,
-            HUPCL => raw::HUPCL,
-            CLOCAL => raw::CLOCAL,
-            CRTSCTS => raw::CRTSCTS,
         }
     }
 }
 
-impl Clear<Bit> for Flags {
-    fn clear(&mut self, bit: Bit) {
-        self.0 &= !bit.to_raw()
+impl Clear<Flag> for Termios {
+    fn clear(&mut self, flag: Flag) {
+        self.cflag.0 &= !flag.to_raw()
     }
 }
 
-impl Set<Bit> for Flags {
-    fn contains(&self, bit: Bit) -> bool {
-        let bit = bit.to_raw();
+impl Contains<Flag> for Termios {
+    fn contains(&self, flag: Flag) -> bool {
+        let flag = flag.to_raw();
 
-        self.0 & bit == bit
-    }
-
-    fn set(&mut self, bit: Bit) {
-        self.0 |= bit.to_raw()
+        self.cflag.0 & flag == flag
     }
 }
 
-#[deriving(FromPrimitive, Show)]
+impl Set<Flag> for Termios {
+    fn set(&mut self, flag: Flag) {
+        self.cflag.0 |= flag.to_raw()
+    }
+}
+
+/// Character size
+#[derive(Copy, Debug)]
 pub enum CSIZE {
     /// 5 bits (pseudo)
     CS5,
@@ -116,99 +123,125 @@ impl CSIZE {
             raw::CS6 => CS6,
             raw::CS7 => CS7,
             raw::CS8 => CS8,
-            _ => fail!("Unknown CSIZE state: {}", csize),
+            _ => panic!("Unknown CSIZE state: {}", csize),
         }
     }
 }
 
-const CSIZE_MASK: tcflag_t = raw::CS8;
-static CSIZES: &'static [CSIZE] = &[CS5, CS6, CS7, CS8];
+const CSIZE_MASK: tcflag_t = raw::CS5 | raw::CS6 | raw::CS7 | raw::CS8;
 
-impl Get for Flags {}
+impl Get for Termios {}
 
-impl GetFrom<Flags> for CSIZE {
-    fn get_from(flags: &Flags) -> CSIZE {
-        CSIZE::from_raw(flags.0 & CSIZE_MASK)
+impl GetFrom<Termios> for CSIZE {
+    fn get_from(termios: &Termios) -> CSIZE {
+        CSIZE::from_raw(termios.cflag.0 & CSIZE_MASK)
     }
 }
 
-impl Set<CSIZE> for Flags {
-    fn contains(&self, csize: CSIZE) -> bool {
-        self.0 & CSIZE_MASK == csize.to_raw()
-    }
-
+impl Set<CSIZE> for Termios {
     fn set(&mut self, csize: CSIZE) {
-        self.0 &= !CSIZE_MASK;
-        self.0 |= csize.to_raw();
+        self.cflag.0 &= !CSIZE_MASK;
+        self.cflag.0 |= csize.to_raw();
     }
 }
 
+/// Control chars
+#[derive(Copy)]
 #[repr(C)]
-pub struct Chars([cc_t, ..raw::NCCS]);
+pub struct Chars([cc_t; raw::NCCS as usize]);
 
-impl Index<Char, cc_t> for Chars {
+impl Index<Char> for Chars {
+    type Output = cc_t;
+
     fn index(&self, &char: &Char) -> &cc_t {
         &self.0[char.to_raw()]
     }
 }
 
-impl IndexMut<Char, cc_t> for Chars {
+impl IndexMut<Char> for Chars {
     fn index_mut(&mut self, &char: &Char) -> &mut cc_t {
         &mut self.0[char.to_raw()]
     }
 }
 
-// FIXME (Show) This should be done without allocating the `Vec`
-impl fmt::Show for Chars {
+impl fmt::Debug for Chars {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        CHARS.iter().map(|&char| (char, self[char])).collect::<Vec<_>>().fmt(f)
+        let mut is_first = true;
+
+        for &char in &CHARS {
+            if is_first {
+                is_first = false;
+
+                try!(write!(f, "{:?}: {:?}", char, self[char]));
+            } else {
+                try!(write!(f, ", {:?}: {:?}", char, self[char]));
+            }
+        }
+
+        Ok(())
     }
 }
 
-static CHARS: &'static [Char] = &[
-    VINTR, VQUIT, VERASE, VKILL, VEOF, VTIME, VMIN, VSTART, VSTOP, VSUSP, VEOL, VREPRINT,
-    VDISCARD, VWERASE, VLNEXT, VEOL2,
-];
-
-#[deriving(Show)]
-pub enum Char {
-    VINTR,
-    VQUIT,
-    VERASE,
-    VKILL,
+const CHARS: [Char; 16] = [
+    VDISCARD,
     VEOF,
-    VTIME,
+    VEOL2,
+    VEOL,
+    VERASE,
+    VINTR,
+    VKILL,
+    VLNEXT,
     VMIN,
+    VQUIT,
+    VREPRINT,
     VSTART,
     VSTOP,
     VSUSP,
-    VEOL,
-    VREPRINT,
-    VDISCARD,
+    VTIME,
     VWERASE,
-    VLNEXT,
+];
+
+/// Standard control chars
+#[allow(missing_docs)]
+#[derive(Copy, Debug)]
+pub enum Char {
+    VDISCARD,
+    VEOF,
     VEOL2,
+    VEOL,
+    VERASE,
+    VINTR,
+    VKILL,
+    VLNEXT,
+    VMIN,
+    VQUIT,
+    VREPRINT,
+    VSTART,
+    VSTOP,
+    VSUSP,
+    VTIME,
+    VWERASE,
 }
 
 impl Char {
-    fn to_raw(&self) -> uint {
-        match *self {
-            VINTR => raw::VINTR,
-            VQUIT => raw::VQUIT,
-            VERASE => raw::VERASE,
-            VKILL => raw::VKILL,
+    fn to_raw(&self) -> usize {
+        (match *self {
+            VDISCARD => raw::VDISCARD,
             VEOF => raw::VEOF,
-            VTIME => raw::VTIME,
+            VEOL => raw::VEOL,
+            VEOL2 => raw::VEOL2,
+            VERASE => raw::VERASE,
+            VINTR => raw::VINTR,
+            VKILL => raw::VKILL,
+            VLNEXT => raw::VLNEXT,
             VMIN => raw::VMIN,
+            VQUIT => raw::VQUIT,
+            VREPRINT => raw::VREPRINT,
             VSTART => raw::VSTART,
             VSTOP => raw::VSTOP,
             VSUSP => raw::VSUSP,
-            VEOL => raw::VEOL,
-            VREPRINT => raw::VREPRINT,
-            VDISCARD => raw::VDISCARD,
+            VTIME => raw::VTIME,
             VWERASE => raw::VWERASE,
-            VLNEXT => raw::VLNEXT,
-            VEOL2 => raw::VEOL2,
-        }
+        }) as usize
     }
 }

@@ -1,9 +1,12 @@
-// examples/unbuffered.rs
+#![feature(core)]
+#![feature(io)]
+#![feature(libc)]
+
 extern crate libc;
 extern crate termios;
 
-use std::io::stdio;
-use termios::{TCSANOW, Clear, Termios};
+use std::old_io::{BytesReader, stdio};
+use termios::prelude::*;
 
 // a.k.a. "Ctrl + D"
 const END_OF_TRANSMISSION: u8 = 4;
@@ -13,21 +16,21 @@ fn main() {
     let mut new_termios = old_termios;
 
     // Disable line buffering
-    new_termios.lflag.clear(termios::local::ICANON);
+    new_termios.clear(local::Flag::ICANON);
 
     // Disable echo
-    new_termios.lflag.clear(termios::local::ECHO);
+    new_termios.clear(local::Flag::ECHO);
 
-    new_termios.update(libc::STDIN_FILENO, TCSANOW).unwrap();
+    new_termios.update(libc::STDIN_FILENO, When::Now).unwrap();
 
     for byte in stdio::stdin().bytes() {
         match byte {
-            Err(e) => fail!("{}", e),
+            Err(e) => panic!("{}", e),
             Ok(END_OF_TRANSMISSION) => break,
             Ok(byte) => println!("Got {}", byte),
         }
     }
 
     // Restore `old_termios`
-    old_termios.update(libc::STDIN_FILENO, TCSANOW).unwrap();
+    old_termios.update(libc::STDIN_FILENO, When::Now).unwrap();
 }

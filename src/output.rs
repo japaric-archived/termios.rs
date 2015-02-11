@@ -2,24 +2,31 @@
 
 use std::fmt;
 
-use {Clear, Set};
+use Termios;
+use raw::{tcflag_t, self};
+use self::Flag::*;
+use traits::{Clear, Contains, Set};
 
-use raw::{tcflag_t, mod};
-
+/// Output flags
+#[derive(Copy)]
 #[repr(C)]
 pub struct Flags(tcflag_t);
 
-impl fmt::Show for Flags {
+impl fmt::Debug for Flags {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut is_first = true;
 
-        for &bit in BITS.iter().filter(|&&bit| self.contains(bit)) {
-            if is_first {
-                is_first = false;
+        for &flag in &FLAGS {
+            let value = flag.to_raw();
 
-                try!(write!(f, "{}", bit));
-            } else {
-                try!(write!(f, " | {}", bit));
+            if self.0 & value == value {
+                if is_first {
+                    is_first = false;
+
+                    try!(write!(f, "{:?}", flag));
+                } else {
+                    try!(write!(f, " | {:?}", flag));
+                }
             }
         }
 
@@ -27,54 +34,57 @@ impl fmt::Show for Flags {
     }
 }
 
-static BITS: &'static [Bit] = &[OPOST, ONLCR, OCRNL, ONOCR, ONLRET, OFILL, OFDEL];
-
-#[deriving(Show)]
-pub enum Bit {
-    /// Enable following output processing
-    OPOST,
-    /// Map NL to CR-NL (ala CRMOD)
+const FLAGS: [Flag; 5] = [
+    OCRNL,
     ONLCR,
+    ONLRET,
+    ONOCR,
+    OPOST,
+];
+
+/// Standard output flags
+#[derive(Copy, Debug)]
+pub enum Flag {
     /// Map CR to NL on output
     OCRNL,
-    /// No CR output at column 0
-    ONOCR,
+    /// Map NL to CR-NL (ala CRMOD)
+    ONLCR,
     /// NL performs CR function
     ONLRET,
-    /// Use fill characters for delay
-    OFILL,
-    /// Fill is DEL, else NUL
-    OFDEL,
+    /// No CR output at column 0
+    ONOCR,
+    /// Enable following output processing
+    OPOST,
 }
 
-impl Bit {
+impl Flag {
     fn to_raw(&self) -> tcflag_t {
         match *self {
-            OPOST => raw::OPOST,
-            ONLCR => raw::ONLCR,
             OCRNL => raw::OCRNL,
-            ONOCR => raw::ONOCR,
+            ONLCR => raw::ONLCR,
             ONLRET => raw::ONLRET,
-            OFILL => raw::OFILL,
-            OFDEL => raw::OFDEL,
+            ONOCR => raw::ONOCR,
+            OPOST => raw::OPOST,
         }
     }
 }
 
-impl Clear<Bit> for Flags {
-    fn clear(&mut self, bit: Bit) {
-        self.0 &= !(bit.to_raw())
+impl Clear<Flag> for Termios {
+    fn clear(&mut self, flag: Flag) {
+        self.oflag.0 &= !(flag.to_raw())
     }
 }
 
-impl Set<Bit> for Flags {
-    fn contains(&self, bit: Bit) -> bool {
-        let bit = bit.to_raw();
+impl Contains<Flag> for Termios {
+    fn contains(&self, flag: Flag) -> bool {
+        let flag = flag.to_raw();
 
-        self.0 & bit == bit
+        self.oflag.0 & flag == flag
     }
+}
 
-    fn set(&mut self, bit: Bit) {
-        self.0 |= bit.to_raw()
+impl Set<Flag> for Termios {
+    fn set(&mut self, flag: Flag) {
+        self.oflag.0 |= flag.to_raw()
     }
 }

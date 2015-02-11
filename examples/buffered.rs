@@ -1,10 +1,12 @@
-// examples/buffered.rs
-use std::io::stdio;
+#![feature(core)]
+#![feature(io)]
+
+use std::old_io::{BytesReader, stdio};
 
 fn main() {
     for byte in stdio::stdin().bytes() {
         match byte {
-            Err(e) => fail!("{}", e),
+            Err(e) => panic!("{}", e),
             Ok(byte) => println!("Got {}", byte),
         }
     }

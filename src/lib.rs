@@ -1,5 +1,7 @@
-#![deny(warnings)]
-#![feature(macro_rules, tuple_indexing)]
+#![deny(missing_docs, warnings)]
+#![feature(core)]
+#![feature(io)]
+#![feature(libc)]
 
 //! Termios bindings + safe wrapper
 //!
@@ -11,20 +13,25 @@ extern crate libc;
 
 use libc::c_int;
 use std::default::Default;
+use std::old_io::{IoError, IoResult};
 use std::{fmt, mem};
-use std::io::{IoError, IoResult};
 
-pub mod raw;
+use self::BaudRate::*;
+use self::When::*;
 
 pub mod control;
 pub mod input;
 pub mod local;
 pub mod output;
+pub mod prelude;
+pub mod raw;
+pub mod traits;
 
 const FAILURE: c_int = -1;
 const SUCCESS: c_int = 0;
 
 /// Safe wrapper around `raw::Termios`
+#[derive(Copy)]
 #[repr(C)]
 pub struct Termios {
     /// Input flags
@@ -38,8 +45,8 @@ pub struct Termios {
     #[cfg(target_os = "linux")] _line: raw::cc_t,
     /// Control characters
     pub cc: control::Chars,
-    ispeed: raw::speed_t,
-    ospeed: raw::speed_t,
+    _ispeed: raw::speed_t,
+    _ospeed: raw::speed_t,
 }
 
 impl Termios {
@@ -54,31 +61,31 @@ impl Termios {
     /// extern crate libc;
     /// extern crate termios;
     ///
-    /// use termios::Termios;
+    /// use termios::prelude::*;
     ///
     /// fn main() {
-    ///     println!("{}", Termios::fetch(libc::STDIN_FILENO).unwrap());
+    ///     println!("{:?}", Termios::fetch(libc::STDIN_FILENO).unwrap());
     /// }
     /// ```
     ///
-    /// ``` notrust
+    /// ``` text
     /// $ ./stdin
-    /// iflag:  ICRNL | IXON | IUTF8
-    /// oflag:  OPOST | ONLCR
-    /// cflag:  CREAD | CS8
-    /// lflag:  ISIG | ICANON | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | IEXTEN
-    /// cc:     [(VINTR, 3), (VQUIT, 28), (VERASE, 127), (VKILL, 21), (VEOF, 4), ...]
+    /// iflag:  ICRNL | IXON
+    /// oflag:  ONLCR | OPOST
+    /// cflag:  CS8 | CREAD
+    /// lflag:  ECHOCTL | ECHOE | ECHOKE | ECHOK | ECHO | ICANON | IEXTEN | ISIG
+    /// cc:     VDISCARD: 15, VEOF: 4, VEOL2: 0, (..)
     /// ispeed: B38400
     /// ospeed: B38400
     ///
-    /// $ echo 'this will fail!' | ./stdin
+    /// $ echo 'this will panic!' | ./stdin
     /// called `Result::unwrap()` on an `Err` value: file descriptor is not a TTY
     /// ```
     ///
-    /// The second call failed because `example`'s stdin was not connected to a TTY, the following
-    /// ASCII art shows how the standard streams are wired in that case:
+    /// The second call panicked because `./stdin`'s stdin was not connected to a TTY, the
+    /// following ASCII art shows how the standard streams are wired in that case:
     ///
-    /// ``` notrust
+    /// ``` text
     ///        +-----------------+  `|`   +---------------------+
     /// TTY => |stdin      stdout| =====> |stdin          stdout| => TTY
     ///        |     `echo`      |        |     `./stdin`       |
@@ -88,10 +95,12 @@ impl Termios {
     pub fn fetch(fd: c_int) -> IoResult<Termios> {
         let mut termios: raw::Termios = Default::default();
 
-        match unsafe { raw::tcgetattr(fd, &mut termios) } {
-            FAILURE => Err(IoError::last_error()),
-            SUCCESS => Ok(unsafe { Termios::from_raw(termios) }),
-            _ => unreachable!(),
+        unsafe {
+            match raw::tcgetattr(fd, &mut termios) {
+                FAILURE => Err(IoError::last_error()),
+                SUCCESS => Ok(Termios::from_raw(termios)),
+                _ => unreachable!(),
+            }
         }
     }
 
@@ -103,14 +112,14 @@ impl Termios {
     ///
     /// Consider the following application:
     ///
-    /// ```
+    /// ``` ignore
     /// // examples/buffered.rs
-    /// use std::io::stdio;
+    /// use std::old_io::{BytesReader, stdio};
     ///
     /// fn main() {
     ///     for byte in stdio::stdin().bytes() {
     ///         match byte {
-    ///             Err(e) => fail!("{}", e),
+    ///             Err(e) => panic!("{}", e),
     ///             Ok(byte) => println!("Got {}", byte),
     ///         }
     ///     }
@@ -120,7 +129,7 @@ impl Termios {
     /// You'll expect the application to print back each byte as you type, however if you run the
     /// application and type: `a b c ENTER CTRL+D`, you get the following output:
     ///
-    /// ``` notrust
+    /// ``` text
     /// $ ./buffered
     /// abc
     /// Got 97
@@ -148,8 +157,8 @@ impl Termios {
     /// extern crate libc;
     /// extern crate termios;
     ///
-    /// use std::io::stdio;
-    /// use termios::{TCSANOW, Clear, Termios};
+    /// use std::old_io::{BytesReader, stdio};
+    /// use termios::prelude::*;
     ///
     /// // a.k.a. "Ctrl+D"
     /// const END_OF_TRANSMISSION: u8 = 4;
@@ -159,33 +168,35 @@ impl Termios {
     ///     let mut new_termios = old_termios;
     ///
     ///     // Disable line buffering
-    ///     new_termios.lflag.clear(termios::local::ICANON);
+    ///     new_termios.lflag.clear(local::Flag::ICANON);
     ///
     ///     // Disable echo
-    ///     new_termios.lflag.clear(termios::local::ECHO);
+    ///     new_termios.lflag.clear(local::Flag::ECHO);
     ///
     ///     // Change the behavior of the TTY
-    ///     new_termios.update(libc::STDIN_FILENO, TCSANOW).unwrap();
+    ///     new_termios.update(libc::STDIN_FILENO, When::Now).unwrap();
     ///
     ///     for byte in stdio::stdin().bytes() {
     ///         match byte {
-    ///             Err(e) => fail!("{}", e),
+    ///             Err(e) => panic!("{}", e),
     ///             Ok(END_OF_TRANSMISSION) => break,
     ///             Ok(byte) => println!("Got {}", byte),
     ///         }
     ///     }
     ///
     ///     // Restore the original behavior of the TTY
-    ///     old_termios.update(libc::STDIN_FILENO, TCSANOW).unwrap();
+    ///     old_termios.update(libc::STDIN_FILENO, When::Now).unwrap();
     /// }
     /// ```
     ///
     /// If you run this example, you'll receive the `"Got XYZ"` message each time you press a key.
     pub fn update(&self, fd: c_int, when: When) -> IoResult<()> {
-        match unsafe { raw::tcsetattr(fd, when.to_raw(), self.as_raw()) } {
-            FAILURE => Err(IoError::last_error()),
-            SUCCESS => Ok(()),
-            _ => unreachable!(),
+        unsafe {
+            match raw::tcsetattr(fd, when.to_raw(), self.as_raw()) {
+                FAILURE => Err(IoError::last_error()),
+                SUCCESS => Ok(()),
+                _ => unreachable!(),
+            }
         }
     }
 
@@ -200,91 +211,105 @@ impl Termios {
     /// extern crate libc;
     /// extern crate termios;
     ///
-    /// use termios::Termios;
+    /// use termios::prelude::*;
     ///
     /// fn main() {
     ///     let mut termios = Termios::fetch(libc::STDIN_FILENO).unwrap();
-    ///     println!("Cooked:\n{}", termios);
+    ///     println!("Cooked:\n{:?}", termios);
     ///     termios.make_raw();
-    ///     println!("\nRaw:\n{}", termios);
+    ///     println!("\nRaw:\n{:?}", termios);
     /// }
     /// ```
     ///
-    /// ``` notrust
+    /// ``` text
     /// Cooked:
-    /// iflag:  ICRNL | IXON | IUTF8
-    /// oflag:  OPOST | ONLCR
-    /// cflag:  CREAD | CS8
-    /// lflag:  ISIG | ICANON | ECHO | ECHOE | ECHOK | ECHOCTL | ECHOKE | IEXTEN
-    /// cc:     [(VINTR, 3), (VQUIT, 28), (VERASE, 127), (VKILL, 21), (VEOF, 4), ...]
+    /// iflag:  ICRNL | IXON
+    /// oflag:  ONLCR | OPOST
+    /// cflag:  CS8 | CREAD
+    /// lflag:  ECHOCTL | ECHOE | ECHOKE | ECHOK | ECHO | ICANON | IEXTEN | ISIG
+    /// cc:     VDISCARD: 15, VEOF: 4, VEOL2: 0, (..)
     /// ispeed: B38400
     /// ospeed: B38400
     ///
     /// Raw:
-    /// iflag:  IUTF8
+    /// iflag:
     /// oflag:  ONLCR
-    /// cflag:  CREAD | CS8
-    /// lflag:  ECHOE | ECHOK | ECHOCTL | ECHOKE
-    /// cc:     [(VINTR, 3), (VQUIT, 28), (VERASE, 127), (VKILL, 21), (VEOF, 4), ...]
+    /// cflag:  CS8 | CREAD
+    /// lflag:  ECHOCTL | ECHOE | ECHOKE | ECHOK
+    /// cc:     VDISCARD: 15, VEOF: 4, VEOL2: 0, (..)
     /// ispeed: B38400
     /// ospeed: B38400
     /// ```
     pub fn make_raw(&mut self) {
-        unsafe { raw::cfmakeraw(self.as_raw_mut()) };
+        unsafe {
+            raw::cfmakeraw(self.as_raw_mut())
+        }
     }
 
     /// Returns the input baud rate
     pub fn ispeed(&self) -> BaudRate {
-        BaudRate::from_raw(self.ispeed)
+        unsafe {
+            BaudRate::from_raw(raw::cfgetispeed(self.as_raw()))
+        }
     }
 
     /// Returns the output baud rate
     pub fn ospeed(&self) -> BaudRate {
-        BaudRate::from_raw(self.ospeed)
+        unsafe {
+            BaudRate::from_raw(raw::cfgetospeed(self.as_raw()))
+        }
     }
 
     /// Sets the input baud rate
     pub fn set_ispeed(&mut self, rate: BaudRate) {
-        match unsafe { raw::cfsetispeed(self.as_raw_mut(), rate.to_raw()) } {
-            FAILURE => {
-                // NB This operation can only fail if self is null (impossible in safe code) or if
-                // rate.to_raw() is an invalid value (that would be a bug)
-                unreachable!();
-            },
-            SUCCESS => {},
-            _ => unreachable!(),
+        unsafe {
+            match raw::cfsetispeed(self.as_raw_mut(), rate.to_raw()) {
+                FAILURE => {
+                    // NB This operation can only panic if self is null (impossible in safe code)
+                    // or if `rate.to_raw()` is an invalid value (that would be a bug)
+                    unreachable!();
+                },
+                SUCCESS => {},
+                _ => unreachable!(),
+            }
         }
     }
 
     /// Sets the output baud rate
     pub fn set_ospeed(&mut self, rate: BaudRate) {
-        match unsafe { raw::cfsetospeed(self.as_raw_mut(), rate.to_raw()) } {
-            FAILURE => {
-                // NB This operation can only fail if self is null (impossible in safe code) or if
-                // rate.to_raw() is an invalid value (that would be a bug)
-                unreachable!();
-            },
-            SUCCESS => {},
-            _ => unreachable!(),
+        unsafe {
+            match raw::cfsetospeed(self.as_raw_mut(), rate.to_raw()) {
+                FAILURE => {
+                    // NB This operation can only panic if self is null (impossible in safe code)
+                    // or if `rate.to_raw()` is an invalid value (that would be a bug)
+                    unreachable!();
+                },
+                SUCCESS => {},
+                _ => unreachable!(),
+            }
         }
     }
 
     /// Sets both the input and the output baud rates
     pub fn set_speed(&mut self, rate: BaudRate) {
-        match unsafe { raw::cfsetspeed(self.as_raw_mut(), rate.to_raw()) } {
-            FAILURE => {
-                // NB This operation can only fail if self is null (impossible in safe code) or if
-                // rate.to_raw() is an invalid value (that would be a bug)
-                unreachable!();
-            },
-            SUCCESS => {},
-            _ => unreachable!(),
+        unsafe {
+            match raw::cfsetspeed(self.as_raw_mut(), rate.to_raw()) {
+                FAILURE => {
+                    // NB This operation can only panic if self is null (impossible in safe code)
+                    // or if `rate.to_raw()` is an invalid value (that would be a bug)
+                    unreachable!();
+                },
+                SUCCESS => {},
+                _ => unreachable!(),
+            }
         }
     }
 
     /// Borrows the safe wrapper as its raw representation
     pub fn as_raw(&self) -> &raw::Termios {
-        unsafe { mem::transmute(self) }
+        unsafe {
+            mem::transmute(self)
+        }
     }
 
     /// Mutably borrows the safe wrapper as its raw representation
@@ -299,70 +324,29 @@ impl Termios {
 
     /// Converts the safe wrapper into its raw representation
     pub fn into_raw(self) -> raw::Termios {
-        unsafe { mem::transmute(self) }
+        unsafe {
+            mem::transmute(self)
+        }
     }
 }
 
-// XXX (Show) Formatting may change
-impl fmt::Show for Termios {
+// XXX (Debug) Formatting may change
+impl fmt::Debug for Termios {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        try!(writeln!(f, "iflag:\t{}", self.iflag));
-        try!(writeln!(f, "oflag:\t{}", self.oflag));
-        try!(writeln!(f, "cflag:\t{}", self.cflag));
-        try!(writeln!(f, "lflag:\t{}", self.lflag));
-        try!(writeln!(f, "cc:\t{}", self.cc));
-        try!(writeln!(f, "ispeed:\t{}", self.ispeed()));
-        try!(write!(f, "ospeed:\t{}", self.ospeed()));
+        try!(writeln!(f, "iflag:\t{:?}", self.iflag));
+        try!(writeln!(f, "oflag:\t{:?}", self.oflag));
+        try!(writeln!(f, "cflag:\t{:?}", self.cflag));
+        try!(writeln!(f, "lflag:\t{:?}", self.lflag));
+        try!(writeln!(f, "cc:\t{:?}", self.cc));
+        try!(writeln!(f, "ispeed:\t{:?}", self.ispeed()));
+        try!(write!(f, "ospeed:\t{:?}", self.ospeed()));
         Ok(())
     }
 }
 
-pub trait Clear<T> {
-    fn clear(&mut self, T);
-}
-
-impl<'a, T, C> Clear<&'a [T]> for C where
-    T: Copy,
-    C: Clear<T>,
-{
-    fn clear(&mut self, bits: &[T]) {
-        for &bit in bits.iter() {
-            self.clear(bit)
-        }
-    }
-}
-
-pub trait Get {
-    fn get<T: GetFrom<Self>>(&self) -> T {
-        GetFrom::get_from(self)
-    }
-}
-
-pub trait GetFrom<T> {
-    fn get_from(&T) -> Self;
-}
-
-pub trait Set<T> {
-    fn contains(&self, T) -> bool;
-    fn set(&mut self, T);
-}
-
-impl<'a, T, S> Set<&'a [T]> for S where
-    T: Copy,
-    S: Set<T>,
-{
-    fn contains(&self, bits: &[T]) -> bool {
-        bits.iter().all(|&bit| self.contains(bit))
-    }
-
-    fn set(&mut self, bits: &[T]) {
-        for &bit in bits.iter() {
-            self.set(bit)
-        }
-    }
-}
-
-#[deriving(PartialEq, Show)]
+/// Standard baud rates
+#[allow(missing_docs)]
+#[derive(Copy, Debug, PartialEq)]
 pub enum BaudRate {
     B0,
     B50,
@@ -387,6 +371,8 @@ pub enum BaudRate {
 
 impl BaudRate {
     fn from_raw(speed: raw::tcflag_t) -> BaudRate {
+        use BaudRate::*;
+
         match speed {
             raw::B0 => B0,
             raw::B50 => B50,
@@ -407,7 +393,7 @@ impl BaudRate {
             raw::B57600 => B57600,
             raw::B115200 => B115200,
             raw::B230400 => B230400,
-            _ => fail!("Unknown baud rate flag: {}", speed),
+            _ => panic!("Unknown baud rate flag: {}", speed),
         }
     }
 
@@ -439,19 +425,19 @@ impl BaudRate {
 /// When to update the underlying `raw::Termios` structure
 pub enum When {
     /// Make change immediate
-    TCSANOW,
+    Now,
     /// Drain output, then change
-    TCSADRAIN,
+    AfterDrain,
     /// Drain output, flush input, then change
-    TCSAFLUSH,
+    AfterFlush,
 }
 
 impl When {
     fn to_raw(&self) -> c_int {
         match *self {
-            TCSANOW => raw::TCSANOW,
-            TCSADRAIN => raw::TCSADRAIN,
-            TCSAFLUSH => raw::TCSAFLUSH,
+            Now => raw::TCSANOW,
+            AfterDrain => raw::TCSADRAIN,
+            AfterFlush => raw::TCSAFLUSH,
         }
     }
 }
