@@ -1,0 +1,28 @@
+language: rust
+
+env:
+  global:
+    - secure: CjyrRkVGtC+FaUj8lT1c0jsWuKIqh99Dkg99VzlIfs6F/6/zS/ZnQ7nF4qz9YR2+YHEa6wkccExOC5y1Utn3Esvk1+mw3pTU3KB4vgzZ5grA/BOK6V3n0PgkYakB+LixdGxv9vV6gLkWaU60hgYyoDr0esoiXk7kNO8DPRCcB3s=
+
+before_install:
+  - yes | sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main"
+  - yes | sudo add-apt-repository "deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main"
+  - sudo apt-get update
+
+install:
+  # Required to build bindgen
+  - sudo apt-get install --force-yes libclang-3.5-dev
+  - sudo apt-get install --force-yes llvm-3.5-dev
+
+script:
+  - apt-cache show libc6 | grep Version
+  - LIBCLANG_PATH=/usr/lib/llvm-3.5/lib cargo build --verbose
+  - cargo test --verbose
+  - cargo doc --verbose
+  - ./check-line-length.sh
+
+after_success:
+  - '[ "${TRAVIS_PULL_REQUEST}" = "false" ] && bash upload-docs.sh'
+
+branches:
+  only: master
