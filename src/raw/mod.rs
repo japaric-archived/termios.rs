@@ -33,11 +33,6 @@ pub use self::ffi::{
     tcsetsid,
 };
 
-#[cfg(target_os = "linux")]
-pub use self::ffi::{
-    tcgetsid,
-};
-
 // XXX (Debug) Formatting may change
 impl fmt::Debug for Termios {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
