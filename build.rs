@@ -17,7 +17,7 @@ const HEADER_FILE: &'static str = "linux.h";
 const HEADER_FILE: &'static str = "macos.h";
 
 fn main() {
-    let src_dir = Path::new(env::var_string("CARGO_MANIFEST_DIR").unwrap()).join("src");
+    let src_dir = Path::new(env::var("CARGO_MANIFEST_DIR").unwrap()).join("src");
     let include_file = src_dir.join(HEADER_FILE);
     let mut options: BindgenOptions = Default::default();
     options.clang_args.push(include_file.as_str().unwrap().to_string());

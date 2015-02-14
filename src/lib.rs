@@ -1,5 +1,4 @@
 #![deny(missing_docs, warnings)]
-#![feature(core)]
 #![feature(io)]
 #![feature(libc)]
 

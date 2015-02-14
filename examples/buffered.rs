@@ -1,4 +1,3 @@
-#![feature(core)]
 #![feature(io)]
 
 use std::old_io::{BytesReader, stdio};

@@ -1,4 +1,3 @@
-#![feature(core)]
 #![feature(io)]
 #![feature(libc)]
 
