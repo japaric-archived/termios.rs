@@ -1,6 +1,7 @@
 #![deny(missing_docs, warnings)]
-#![feature(io)]
+#![feature(core)]
 #![feature(libc)]
+#![feature(old_io)]
 
 //! Termios bindings + safe wrapper
 //!
