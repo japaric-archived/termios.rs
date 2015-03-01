@@ -1,11 +1,12 @@
-#![feature(old_io)]
 #![feature(libc)]
+#![feature(old_io)]
 
 extern crate libc;
 extern crate termios;
 
-use std::old_io::{BytesReader, stdio};
 use termios::prelude::*;
+
+use std::old_io::{BytesReader, stdio};
 
 // a.k.a. "Ctrl + D"
 const END_OF_TRANSMISSION: u8 = 4;

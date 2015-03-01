@@ -1,7 +1,7 @@
 #![deny(missing_docs, warnings)]
 #![feature(core)]
+#![feature(io)]
 #![feature(libc)]
-#![feature(old_io)]
 
 //! Termios bindings + safe wrapper
 //!
@@ -13,8 +13,7 @@ extern crate libc;
 
 use libc::c_int;
 use std::default::Default;
-use std::old_io::{IoError, IoResult};
-use std::{fmt, mem};
+use std::{fmt, io, mem};
 
 use self::BaudRate::*;
 use self::When::*;
@@ -92,12 +91,12 @@ impl Termios {
     ///        |           stderr| => TTY |               stderr| => TTY
     ///        +-----------------+        +---------------------+
     /// ```
-    pub fn fetch(fd: c_int) -> IoResult<Termios> {
+    pub fn fetch(fd: c_int) -> io::Result<Termios> {
         let mut termios: raw::Termios = Default::default();
 
         unsafe {
             match raw::tcgetattr(fd, &mut termios) {
-                FAILURE => Err(IoError::last_error()),
+                FAILURE => Err(io::Error::last_os_error()),
                 SUCCESS => Ok(Termios::from_raw(termios)),
                 _ => unreachable!(),
             }
@@ -157,7 +156,6 @@ impl Termios {
     /// extern crate libc;
     /// extern crate termios;
     ///
-    /// use std::old_io::{BytesReader, stdio};
     /// use termios::prelude::*;
     ///
     /// // a.k.a. "Ctrl+D"
@@ -190,10 +188,10 @@ impl Termios {
     /// ```
     ///
     /// If you run this example, you'll receive the `"Got XYZ"` message each time you press a key.
-    pub fn update(&self, fd: c_int, when: When) -> IoResult<()> {
+    pub fn update(&self, fd: c_int, when: When) -> io::Result<()> {
         unsafe {
             match raw::tcsetattr(fd, when.to_raw(), self.as_raw()) {
-                FAILURE => Err(IoError::last_error()),
+                FAILURE => Err(io::Error::last_os_error()),
                 SUCCESS => Ok(()),
                 _ => unreachable!(),
             }
