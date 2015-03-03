@@ -55,7 +55,7 @@ impl Termios {
     ///
     /// Inspect your TTY.
     ///
-    /// ``` ignore
+    /// ``` no_run
     /// // examples/stdin.rs
     /// extern crate libc;
     /// extern crate termios;
@@ -111,12 +111,14 @@ impl Termios {
     ///
     /// Consider the following application:
     ///
-    /// ``` ignore
+    /// ``` no_run
     /// // examples/buffered.rs
-    /// use std::old_io::{BytesReader, stdio};
+    /// use std::io::{ReadExt, self};
     ///
     /// fn main() {
-    ///     for byte in stdio::stdin().bytes() {
+    ///     let stdin = io::stdin();
+    ///
+    ///     for byte in stdin.lock().bytes() {
     ///         match byte {
     ///             Err(e) => panic!("{}", e),
     ///             Ok(byte) => println!("Got {}", byte),
@@ -151,10 +153,12 @@ impl Termios {
     /// behavior of the TTY using `Termios`. The following code disables both echoing and line
     /// buffering:
     ///
-    /// ``` ignore
+    /// ``` no_run
     /// // examples/unbuffered.rs
     /// extern crate libc;
     /// extern crate termios;
+    ///
+    /// use std::io::{ReadExt, self};
     ///
     /// use termios::prelude::*;
     ///
@@ -166,15 +170,17 @@ impl Termios {
     ///     let mut new_termios = old_termios;
     ///
     ///     // Disable line buffering
-    ///     new_termios.lflag.clear(local::Flag::ICANON);
+    ///     new_termios.clear(local::Flag::ICANON);
     ///
     ///     // Disable echo
-    ///     new_termios.lflag.clear(local::Flag::ECHO);
+    ///     new_termios.clear(local::Flag::ECHO);
     ///
     ///     // Change the behavior of the TTY
     ///     new_termios.update(libc::STDIN_FILENO, When::Now).unwrap();
     ///
-    ///     for byte in stdio::stdin().bytes() {
+    ///     let stdin = io::stdin();
+    ///
+    ///     for byte in stdin.lock().bytes() {
     ///         match byte {
     ///             Err(e) => panic!("{}", e),
     ///             Ok(END_OF_TRANSMISSION) => break,
@@ -204,7 +210,7 @@ impl Termios {
     ///
     /// Compare "cooked" and "raw" modes
     ///
-    /// ``` ignore
+    /// ``` no_run
     /// // examples/raw.rs
     /// extern crate libc;
     /// extern crate termios;

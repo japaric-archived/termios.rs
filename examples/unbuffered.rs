@@ -1,12 +1,12 @@
+#![feature(io)]
 #![feature(libc)]
-#![feature(old_io)]
 
 extern crate libc;
 extern crate termios;
 
-use termios::prelude::*;
+use std::io::{ReadExt, self};
 
-use std::old_io::{BytesReader, stdio};
+use termios::prelude::*;
 
 // a.k.a. "Ctrl + D"
 const END_OF_TRANSMISSION: u8 = 4;
@@ -23,7 +23,8 @@ fn main() {
 
     new_termios.update(libc::STDIN_FILENO, When::Now).unwrap();
 
-    for byte in stdio::stdin().bytes() {
+    let stdin = io::stdin();
+    for byte in stdin.lock().bytes() {
         match byte {
             Err(e) => panic!("{}", e),
             Ok(END_OF_TRANSMISSION) => break,
