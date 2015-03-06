@@ -6,6 +6,6 @@ name = "termios"
 version = "0.0.0"
 
 [build-dependencies.rust-bindgen]
-branch = "static"
+branch = "rustup"
 features = ["static"]
 git = "https://github.com/japaric/rust-bindgen"
