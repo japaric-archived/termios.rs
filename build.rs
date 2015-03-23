@@ -1,7 +1,3 @@
-#![feature(fs)]
-#![feature(io)]
-#![feature(path)]
-
 extern crate bindgen;
 
 use bindgen::{Bindings, BindgenOptions};
