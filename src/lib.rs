@@ -111,7 +111,7 @@ impl Termios {
     ///
     /// ``` no_run
     /// // examples/buffered.rs
-    /// use std::io::{ReadExt, self};
+    /// use std::io::{Read, self};
     ///
     /// fn main() {
     ///     let stdin = io::stdin();
@@ -156,7 +156,7 @@ impl Termios {
     /// extern crate libc;
     /// extern crate termios;
     ///
-    /// use std::io::{ReadExt, self};
+    /// use std::io::{Read, self};
     ///
     /// use termios::prelude::*;
     ///
