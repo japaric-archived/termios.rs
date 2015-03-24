@@ -1,10 +1,9 @@
-#![feature(io)]
 #![feature(libc)]
 
 extern crate libc;
 extern crate termios;
 
-use std::io::{ReadExt, self};
+use std::io::{Read, self};
 
 use termios::prelude::*;
 

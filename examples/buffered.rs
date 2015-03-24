@@ -1,6 +1,4 @@
-#![feature(io)]
-
-use std::io::{ReadExt, self};
+use std::io::{Read, self};
 
 fn main() {
     let stdin = io::stdin();
