@@ -6,6 +6,10 @@
 //! # Examples
 //!
 //! Check the [`Termios`](struct.Termios.html#method.fetch) struct.
+//!
+//! # Dependencies
+//!
+//! - libclang-3.6-dev to generate the bindings
 
 extern crate libc;
 
