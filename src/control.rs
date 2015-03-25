@@ -153,13 +153,13 @@ pub struct Chars([cc_t; raw::NCCS as usize]);
 impl Index<Char> for Chars {
     type Output = cc_t;
 
-    fn index(&self, &char: &Char) -> &cc_t {
+    fn index(&self, char: Char) -> &cc_t {
         &self.0[char.to_raw()]
     }
 }
 
 impl IndexMut<Char> for Chars {
-    fn index_mut(&mut self, &char: &Char) -> &mut cc_t {
+    fn index_mut(&mut self, char: Char) -> &mut cc_t {
         &mut self.0[char.to_raw()]
     }
 }
