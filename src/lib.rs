@@ -59,6 +59,8 @@ impl Termios {
     ///
     /// ``` no_run
     /// // examples/stdin.rs
+    /// #![feature(libc)]
+    ///
     /// extern crate libc;
     /// extern crate termios;
     ///
@@ -157,6 +159,8 @@ impl Termios {
     ///
     /// ``` no_run
     /// // examples/unbuffered.rs
+    /// #![feature(libc)]
+    ///
     /// extern crate libc;
     /// extern crate termios;
     ///
@@ -214,6 +218,8 @@ impl Termios {
     ///
     /// ``` no_run
     /// // examples/raw.rs
+    /// #![feature(libc)]
+    ///
     /// extern crate libc;
     /// extern crate termios;
     ///
