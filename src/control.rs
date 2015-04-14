@@ -11,7 +11,7 @@ use self::Flag::*;
 use traits::{Clear, Contains, Get, GetFrom, Set};
 
 /// Control flags
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct Flags(tcflag_t);
 
@@ -42,7 +42,7 @@ const FLAGS: [Flag; 7] = [
 ];
 
 /// Standard control flags
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Flag {
     /// Ignore modem status lines
     CLOCAL,
@@ -95,7 +95,7 @@ impl Set<Flag> for Termios {
 }
 
 /// Character size
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum CSIZE {
     /// 5 bits (pseudo)
     CS5,
@@ -146,7 +146,7 @@ impl Set<CSIZE> for Termios {
 }
 
 /// Control chars
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct Chars([cc_t; raw::NCCS as usize]);
 
@@ -203,7 +203,7 @@ const CHARS: [Char; 16] = [
 
 /// Standard control chars
 #[allow(missing_docs)]
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Char {
     VDISCARD,
     VEOF,

@@ -8,7 +8,7 @@ use self::Flag::*;
 use traits::{Clear, Contains, Set};
 
 /// Input flags
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct Flags(tcflag_t);
 
@@ -51,7 +51,7 @@ const FLAGS: [Flag; 13] = [
 ];
 
 /// Standard input flags
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Flag {
     /// Map BREAK to SIGINTR
     BRKINT,

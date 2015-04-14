@@ -8,7 +8,7 @@ use self::Flag::*;
 use traits::{Clear, Contains, Set};
 
 /// Output flags
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct Flags(tcflag_t);
 
@@ -43,7 +43,7 @@ const FLAGS: [Flag; 5] = [
 ];
 
 /// Standard output flags
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Flag {
     /// Map CR to NL on output
     OCRNL,

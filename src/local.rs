@@ -8,7 +8,7 @@ use self::Flag::*;
 use traits::{Clear, Contains, Set};
 
 /// Local flags
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct Flags(tcflag_t);
 
@@ -53,7 +53,7 @@ const FLAGS: [Flag; 15] = [
 ];
 
 /// Standard local flags
-#[derive(Copy, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Flag {
     /// Echo control chars as `^(Char)`
     ECHOCTL,

@@ -1,5 +1,7 @@
-#![deny(missing_docs, warnings)]
+#![deny(missing_docs)]
+#![deny(warnings)]
 #![feature(libc)]
+#![feature(negate_unsigned)]
 
 //! Termios bindings + safe wrapper
 //!
@@ -32,7 +34,7 @@ const FAILURE: c_int = -1;
 const SUCCESS: c_int = 0;
 
 /// Safe wrapper around `raw::Termios`
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct Termios {
     /// Input flags
@@ -358,7 +360,7 @@ impl fmt::Debug for Termios {
 
 /// Standard baud rates
 #[allow(missing_docs)]
-#[derive(Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BaudRate {
     B0,
     B50,
