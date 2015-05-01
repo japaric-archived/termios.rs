@@ -20,6 +20,6 @@ fn main() {
     let include_file = src_dir.join(HEADER_FILE);
     let mut options: BindgenOptions = Default::default();
     options.clang_args.push(include_file.to_str().unwrap().to_string());
-    let bindings = Bindings::generate(&options, None, None).unwrap().to_string();
-    File::create(&src_dir.join("raw/ffi.rs")).unwrap().write_all(bindings.as_bytes()).unwrap();
+    let bindings = Bindings::generate(&options, None, None).unwrap();
+    bindings.write(Box::new(File::create(&src_dir.join("raw/ffi.rs")).unwrap())).unwrap()
 }
