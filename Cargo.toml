@@ -5,5 +5,5 @@ build = "build.rs"
 name = "termios"
 version = "0.0.0"
 
-[build-dependencies.rust-bindgen]
+[build-dependencies.bindgen]
 git = "https://github.com/crabtw/rust-bindgen"
