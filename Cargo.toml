@@ -6,4 +6,5 @@ name = "termios"
 version = "0.0.0"
 
 [build-dependencies.bindgen]
-git = "https://github.com/crabtw/rust-bindgen"
+branch = "free-lifetime"
+git = "https://github.com/japaric/rust-bindgen"
