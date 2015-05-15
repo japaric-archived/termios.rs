@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["LinkType",""]],"fn":[["builder",""]],"struct":[["BindgenOptions","Deprecated - use a `Builder` instead"],["Bindings",""],["Builder",""]],"trait":[["Logger",""]]});

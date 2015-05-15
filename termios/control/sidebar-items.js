@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CSIZE","Character size"],["Char","Standard control chars"],["Flag","Standard control flags"]],"struct":[["Chars","Control chars"],["Flags","Control flags"]]});

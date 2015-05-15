@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Termios` struct in crate `termios`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Termios">
+
+    <title>termios::Termios - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <section class="sidebar">
+        
+        <p class='location'><a href='index.html'>termios</a></p><script>window.sidebarCurrent = {name: 'Termios', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </section>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press 'S' to search, '?' for more options..."
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>termios</a>::<wbr><a class='struct' href=''>Termios</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-4153' class='srclink' href='../src/termios/lib.rs.html#39-53' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Termios {
+    pub iflag: <a class='struct' href='../termios/input/struct.Flags.html' title='termios::input::Flags'>Flags</a>,
+    pub oflag: <a class='struct' href='../termios/output/struct.Flags.html' title='termios::output::Flags'>Flags</a>,
+    pub cflag: <a class='struct' href='../termios/control/struct.Flags.html' title='termios::control::Flags'>Flags</a>,
+    pub lflag: <a class='struct' href='../termios/local/struct.Flags.html' title='termios::local::Flags'>Flags</a>,
+    pub cc: <a class='struct' href='../termios/control/struct.Chars.html' title='termios::control::Chars'>Chars</a>,
+    // some fields omitted
+}</pre><div class='docblock'><p>Safe wrapper around <code>raw::Termios</code></p>
+</div><h2 class='fields'>Fields</h2>
+<table><tr class='stab '>
+                                  <td id='structfield.iflag'><code>iflag</code></td><td><div class='docblock'><p>Input flags</p>
+</div></td></tr><tr class='stab '>
+                                  <td id='structfield.oflag'><code>oflag</code></td><td><div class='docblock'><p>Output flags</p>
+</div></td></tr><tr class='stab '>
+                                  <td id='structfield.cflag'><code>cflag</code></td><td><div class='docblock'><p>Control flags</p>
+</div></td></tr><tr class='stab '>
+                                  <td id='structfield.lflag'><code>lflag</code></td><td><div class='docblock'><p>Local flags</p>
+</div></td></tr><tr class='stab '>
+                                  <td id='structfield.cc'><code>cc</code></td><td><div class='docblock'><p>Control characters</p>
+</div></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.fetch' class='method'><code>fn <a href='#method.fetch' class='fnname'>fetch</a>(fd: <a class='type' href='../libc/types/os/arch/c95/type.c_int.html' title='libc::types::os::arch::c95::c_int'>c_int</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a>&gt;</code></h4>
+<div class='docblock'><p>Returns the <code>Termios</code> structure associated with the <code>fd</code> (file descriptor)</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1>
+<p>Inspect your TTY.</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='comment'>// examples/stdin.rs</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>libc</span>)]</span>
+
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>termios</span>;
+
+<span class='kw'>use</span> <span class='ident'>termios</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;{:?}&quot;</span>, <span class='ident'>Termios</span>::<span class='ident'>fetch</span>(<span class='ident'>libc</span>::<span class='ident'>STDIN_FILENO</span>).<span class='ident'>unwrap</span>());
+}
+</pre>
+
+<pre><code class="language-text">$ ./stdin
+iflag:  ICRNL | IXON
+oflag:  ONLCR | OPOST
+cflag:  CS8 | CREAD
+lflag:  ECHOCTL | ECHOE | ECHOKE | ECHOK | ECHO | ICANON | IEXTEN | ISIG
+cc:     VDISCARD: 15, VEOF: 4, VEOL2: 0, (..)
+ispeed: B38400
+ospeed: B38400
+
+$ echo &#39;this will panic!&#39; | ./stdin
+called `Result::unwrap()` on an `Err` value: file descriptor is not a TTY
+</code></pre>
+
+<p>The second call panicked because <code>./stdin</code>&#39;s stdin was not connected to a TTY, the
+following ASCII art shows how the standard streams are wired in that case:</p>
+
+<pre><code class="language-text">       +-----------------+  `|`   +---------------------+
+TTY =&gt; |stdin      stdout| =====&gt; |stdin          stdout| =&gt; TTY
+       |     `echo`      |        |     `./stdin`       |
+       |           stderr| =&gt; TTY |               stderr| =&gt; TTY
+       +-----------------+        +---------------------+
+</code></pre>
+</div><h4 id='method.update' class='method'><code>fn <a href='#method.update' class='fnname'>update</a>(&amp;self, fd: <a class='type' href='../libc/types/os/arch/c95/type.c_int.html' title='libc::types::os::arch::c95::c_int'>c_int</a>, when: <a class='enum' href='../termios/enum.When.html' title='termios::When'>When</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a href='http://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+<div class='docblock'><p>Updates the <code>Termios</code> structure associated with the <code>fd</code> (file descriptor)</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1>
+<p>Unbuffered TTY input.</p>
+
+<p>Consider the following application:</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='comment'>// examples/buffered.rs</span>
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='ident'>Read</span>, <span class='self'>self</span>};
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='kw'>let</span> <span class='ident'>stdin</span> <span class='op'>=</span> <span class='ident'>io</span>::<span class='ident'>stdin</span>();
+
+    <span class='kw'>for</span> <span class='ident'>byte</span> <span class='kw'>in</span> <span class='ident'>stdin</span>.<span class='ident'>lock</span>().<span class='ident'>bytes</span>() {
+        <span class='kw'>match</span> <span class='ident'>byte</span> {
+            <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>e</span>),
+            <span class='prelude-val'>Ok</span>(<span class='ident'>byte</span>) <span class='op'>=&gt;</span> <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Got {}&quot;</span>, <span class='ident'>byte</span>),
+        }
+    }
+}
+</pre>
+
+<p>You&#39;ll expect the application to print back each byte as you type, however if you run the
+application and type: <code>a b c ENTER CTRL+D</code>, you get the following output:</p>
+
+<pre><code class="language-text">$ ./buffered
+abc
+Got 97
+Got 98
+Got 99
+Got 10
+</code></pre>
+
+<p>You&#39;ll notice two things:</p>
+
+<ul>
+<li>The application prints back what you type.</li>
+<li>The application doesn&#39;t process your input until you hit ENTER.</li>
+</ul>
+
+<p>The difference between the observed behavior and your expectations is caused by the TTY
+(the terminal emulator you are using). By default, the TTY echoes back what you type (this
+is essential when you are typing commands in a shell!), and also buffers (line by line)
+your input before sending it to the application.</p>
+
+<p>If you want the application to match your expectations, then you&#39;ll have to modify the
+behavior of the TTY using <code>Termios</code>. The following code disables both echoing and line
+buffering:</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='comment'>// examples/unbuffered.rs</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>libc</span>)]</span>
+
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>termios</span>;
+
+<span class='kw'>use</span> <span class='ident'>std</span>::<span class='ident'>io</span>::{<span class='ident'>Read</span>, <span class='self'>self</span>};
+
+<span class='kw'>use</span> <span class='ident'>termios</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
+
+<span class='comment'>// a.k.a. &quot;Ctrl+D&quot;</span>
+<span class='kw'>const</span> <span class='ident'>END_OF_TRANSMISSION</span>: <span class='ident'>u8</span> <span class='op'>=</span> <span class='number'>4</span>;
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='kw'>let</span> <span class='ident'>old_termios</span> <span class='op'>=</span> <span class='ident'>Termios</span>::<span class='ident'>fetch</span>(<span class='ident'>libc</span>::<span class='ident'>STDIN_FILENO</span>).<span class='ident'>unwrap</span>();
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>new_termios</span> <span class='op'>=</span> <span class='ident'>old_termios</span>;
+
+    <span class='comment'>// Disable line buffering</span>
+    <span class='ident'>new_termios</span>.<span class='ident'>clear</span>(<span class='ident'>local</span>::<span class='ident'>Flag</span>::<span class='ident'>ICANON</span>);
+
+    <span class='comment'>// Disable echo</span>
+    <span class='ident'>new_termios</span>.<span class='ident'>clear</span>(<span class='ident'>local</span>::<span class='ident'>Flag</span>::<span class='ident'>ECHO</span>);
+
+    <span class='comment'>// Change the behavior of the TTY</span>
+    <span class='ident'>new_termios</span>.<span class='ident'>update</span>(<span class='ident'>libc</span>::<span class='ident'>STDIN_FILENO</span>, <span class='ident'>When</span>::<span class='ident'>Now</span>).<span class='ident'>unwrap</span>();
+
+    <span class='kw'>let</span> <span class='ident'>stdin</span> <span class='op'>=</span> <span class='ident'>io</span>::<span class='ident'>stdin</span>();
+
+    <span class='kw'>for</span> <span class='ident'>byte</span> <span class='kw'>in</span> <span class='ident'>stdin</span>.<span class='ident'>lock</span>().<span class='ident'>bytes</span>() {
+        <span class='kw'>match</span> <span class='ident'>byte</span> {
+            <span class='prelude-val'>Err</span>(<span class='ident'>e</span>) <span class='op'>=&gt;</span> <span class='macro'>panic</span><span class='macro'>!</span>(<span class='string'>&quot;{}&quot;</span>, <span class='ident'>e</span>),
+            <span class='prelude-val'>Ok</span>(<span class='ident'>END_OF_TRANSMISSION</span>) <span class='op'>=&gt;</span> <span class='kw'>break</span>,
+            <span class='prelude-val'>Ok</span>(<span class='ident'>byte</span>) <span class='op'>=&gt;</span> <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Got {}&quot;</span>, <span class='ident'>byte</span>),
+        }
+    }
+
+    <span class='comment'>// Restore the original behavior of the TTY</span>
+    <span class='ident'>old_termios</span>.<span class='ident'>update</span>(<span class='ident'>libc</span>::<span class='ident'>STDIN_FILENO</span>, <span class='ident'>When</span>::<span class='ident'>Now</span>).<span class='ident'>unwrap</span>();
+}
+</pre>
+
+<p>If you run this example, you&#39;ll receive the <code>&quot;Got XYZ&quot;</code> message each time you press a key.</p>
+</div><h4 id='method.make_raw' class='method'><code>fn <a href='#method.make_raw' class='fnname'>make_raw</a>(&amp;mut self)</code></h4>
+<div class='docblock'><p>Puts <code>Termios</code> in &quot;raw&quot; mode</p>
+
+<h1 id="examples" class='section-header'><a
+                           href="#examples">Examples</a></h1>
+<p>Compare &quot;cooked&quot; and &quot;raw&quot; modes</p>
+<pre id='rust-example-rendered' class='rust '>
+<span class='comment'>// examples/raw.rs</span>
+<span class='attribute'>#<span class='op'>!</span>[<span class='ident'>feature</span>(<span class='ident'>libc</span>)]</span>
+
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>libc</span>;
+<span class='kw'>extern</span> <span class='kw'>crate</span> <span class='ident'>termios</span>;
+
+<span class='kw'>use</span> <span class='ident'>termios</span>::<span class='ident'>prelude</span>::<span class='op'>*</span>;
+
+<span class='kw'>fn</span> <span class='ident'>main</span>() {
+    <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>termios</span> <span class='op'>=</span> <span class='ident'>Termios</span>::<span class='ident'>fetch</span>(<span class='ident'>libc</span>::<span class='ident'>STDIN_FILENO</span>).<span class='ident'>unwrap</span>();
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Cooked:\n{:?}&quot;</span>, <span class='ident'>termios</span>);
+    <span class='ident'>termios</span>.<span class='ident'>make_raw</span>();
+    <span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;\nRaw:\n{:?}&quot;</span>, <span class='ident'>termios</span>);
+}
+</pre>
+
+<pre><code class="language-text">Cooked:
+iflag:  ICRNL | IXON
+oflag:  ONLCR | OPOST
+cflag:  CS8 | CREAD
+lflag:  ECHOCTL | ECHOE | ECHOKE | ECHOK | ECHO | ICANON | IEXTEN | ISIG
+cc:     VDISCARD: 15, VEOF: 4, VEOL2: 0, (..)
+ispeed: B38400
+ospeed: B38400
+
+Raw:
+iflag:
+oflag:  ONLCR
+cflag:  CS8 | CREAD
+lflag:  ECHOCTL | ECHOE | ECHOKE | ECHOK
+cc:     VDISCARD: 15, VEOF: 4, VEOL2: 0, (..)
+ispeed: B38400
+ospeed: B38400
+</code></pre>
+</div><h4 id='method.ispeed' class='method'><code>fn <a href='#method.ispeed' class='fnname'>ispeed</a>(&amp;self) -&gt; <a class='enum' href='../termios/enum.BaudRate.html' title='termios::BaudRate'>BaudRate</a></code></h4>
+<div class='docblock'><p>Returns the input baud rate</p>
+</div><h4 id='method.ospeed' class='method'><code>fn <a href='#method.ospeed' class='fnname'>ospeed</a>(&amp;self) -&gt; <a class='enum' href='../termios/enum.BaudRate.html' title='termios::BaudRate'>BaudRate</a></code></h4>
+<div class='docblock'><p>Returns the output baud rate</p>
+</div><h4 id='method.set_ispeed' class='method'><code>fn <a href='#method.set_ispeed' class='fnname'>set_ispeed</a>(&amp;mut self, rate: <a class='enum' href='../termios/enum.BaudRate.html' title='termios::BaudRate'>BaudRate</a>)</code></h4>
+<div class='docblock'><p>Sets the input baud rate</p>
+</div><h4 id='method.set_ospeed' class='method'><code>fn <a href='#method.set_ospeed' class='fnname'>set_ospeed</a>(&amp;mut self, rate: <a class='enum' href='../termios/enum.BaudRate.html' title='termios::BaudRate'>BaudRate</a>)</code></h4>
+<div class='docblock'><p>Sets the output baud rate</p>
+</div><h4 id='method.set_speed' class='method'><code>fn <a href='#method.set_speed' class='fnname'>set_speed</a>(&amp;mut self, rate: <a class='enum' href='../termios/enum.BaudRate.html' title='termios::BaudRate'>BaudRate</a>)</code></h4>
+<div class='docblock'><p>Sets both the input and the output baud rates</p>
+</div><h4 id='method.as_raw' class='method'><code>fn <a href='#method.as_raw' class='fnname'>as_raw</a>(&amp;self) -&gt; &amp;<a class='struct' href='../termios/raw/struct.Termios.html' title='termios::raw::Termios'>Termios</a></code></h4>
+<div class='docblock'><p>Borrows the safe wrapper as its raw representation</p>
+</div><h4 id='method.as_raw_mut' class='method'><code>unsafe fn <a href='#method.as_raw_mut' class='fnname'>as_raw_mut</a>(&amp;mut self) -&gt; &amp;mut <a class='struct' href='../termios/raw/struct.Termios.html' title='termios::raw::Termios'>Termios</a></code></h4>
+<div class='docblock'><p>Mutably borrows the safe wrapper as its raw representation</p>
+</div><h4 id='method.from_raw' class='method'><code>unsafe fn <a href='#method.from_raw' class='fnname'>from_raw</a>(termios: <a class='struct' href='../termios/raw/struct.Termios.html' title='termios::raw::Termios'>Termios</a>) -&gt; <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h4>
+<div class='docblock'><p>Puts <code>raw::Termios</code> into a safe wrapper without performing any check</p>
+</div><h4 id='method.into_raw' class='method'><code>fn <a href='#method.into_raw' class='fnname'>into_raw</a>(self) -&gt; <a class='struct' href='../termios/raw/struct.Termios.html' title='termios::raw::Termios'>Termios</a></code></h4>
+<div class='docblock'><p>Converts the safe wrapper into its raw representation</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Clear.html' title='termios::traits::Clear'>Clear</a>&lt;<a class='enum' href='../termios/control/enum.Flag.html' title='termios::control::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.clear' class='method'><code>fn <a href='../termios/traits/trait.Clear.html#method.clear' class='fnname'>clear</a>(&amp;mut self, flag: <a class='enum' href='../termios/control/enum.Flag.html' title='termios::control::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Contains.html' title='termios::traits::Contains'>Contains</a>&lt;<a class='enum' href='../termios/control/enum.Flag.html' title='termios::control::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.contains' class='method'><code>fn <a href='../termios/traits/trait.Contains.html#method.contains' class='fnname'>contains</a>(&amp;self, flag: <a class='enum' href='../termios/control/enum.Flag.html' title='termios::control::Flag'>Flag</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Set.html' title='termios::traits::Set'>Set</a>&lt;<a class='enum' href='../termios/control/enum.Flag.html' title='termios::control::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.set' class='method'><code>fn <a href='../termios/traits/trait.Set.html#method.set' class='fnname'>set</a>(&amp;mut self, flag: <a class='enum' href='../termios/control/enum.Flag.html' title='termios::control::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Get.html' title='termios::traits::Get'>Get</a> for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.get' class='method'><code>fn <a href='../termios/traits/trait.Get.html#method.get' class='fnname'>get</a>&lt;T&gt;(&amp;self) -&gt; T <span class='where'>where T: <a class='trait' href='../termios/traits/trait.GetFrom.html' title='termios::traits::GetFrom'>GetFrom</a>&lt;Self&gt;</span></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Set.html' title='termios::traits::Set'>Set</a>&lt;<a class='enum' href='../termios/control/enum.CSIZE.html' title='termios::control::CSIZE'>CSIZE</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.set' class='method'><code>fn <a href='../termios/traits/trait.Set.html#method.set' class='fnname'>set</a>(&amp;mut self, csize: <a class='enum' href='../termios/control/enum.CSIZE.html' title='termios::control::CSIZE'>CSIZE</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Clear.html' title='termios::traits::Clear'>Clear</a>&lt;<a class='enum' href='../termios/input/enum.Flag.html' title='termios::input::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.clear' class='method'><code>fn <a href='../termios/traits/trait.Clear.html#method.clear' class='fnname'>clear</a>(&amp;mut self, flag: <a class='enum' href='../termios/input/enum.Flag.html' title='termios::input::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Contains.html' title='termios::traits::Contains'>Contains</a>&lt;<a class='enum' href='../termios/input/enum.Flag.html' title='termios::input::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.contains' class='method'><code>fn <a href='../termios/traits/trait.Contains.html#method.contains' class='fnname'>contains</a>(&amp;self, flag: <a class='enum' href='../termios/input/enum.Flag.html' title='termios::input::Flag'>Flag</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Set.html' title='termios::traits::Set'>Set</a>&lt;<a class='enum' href='../termios/input/enum.Flag.html' title='termios::input::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.set' class='method'><code>fn <a href='../termios/traits/trait.Set.html#method.set' class='fnname'>set</a>(&amp;mut self, flag: <a class='enum' href='../termios/input/enum.Flag.html' title='termios::input::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Clear.html' title='termios::traits::Clear'>Clear</a>&lt;<a class='enum' href='../termios/local/enum.Flag.html' title='termios::local::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.clear' class='method'><code>fn <a href='../termios/traits/trait.Clear.html#method.clear' class='fnname'>clear</a>(&amp;mut self, flag: <a class='enum' href='../termios/local/enum.Flag.html' title='termios::local::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Contains.html' title='termios::traits::Contains'>Contains</a>&lt;<a class='enum' href='../termios/local/enum.Flag.html' title='termios::local::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.contains' class='method'><code>fn <a href='../termios/traits/trait.Contains.html#method.contains' class='fnname'>contains</a>(&amp;self, flag: <a class='enum' href='../termios/local/enum.Flag.html' title='termios::local::Flag'>Flag</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Set.html' title='termios::traits::Set'>Set</a>&lt;<a class='enum' href='../termios/local/enum.Flag.html' title='termios::local::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.set' class='method'><code>fn <a href='../termios/traits/trait.Set.html#method.set' class='fnname'>set</a>(&amp;mut self, flag: <a class='enum' href='../termios/local/enum.Flag.html' title='termios::local::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Clear.html' title='termios::traits::Clear'>Clear</a>&lt;<a class='enum' href='../termios/output/enum.Flag.html' title='termios::output::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.clear' class='method'><code>fn <a href='../termios/traits/trait.Clear.html#method.clear' class='fnname'>clear</a>(&amp;mut self, flag: <a class='enum' href='../termios/output/enum.Flag.html' title='termios::output::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Contains.html' title='termios::traits::Contains'>Contains</a>&lt;<a class='enum' href='../termios/output/enum.Flag.html' title='termios::output::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.contains' class='method'><code>fn <a href='../termios/traits/trait.Contains.html#method.contains' class='fnname'>contains</a>(&amp;self, flag: <a class='enum' href='../termios/output/enum.Flag.html' title='termios::output::Flag'>Flag</a>) -&gt; <a href='http://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a></code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='../termios/traits/trait.Set.html' title='termios::traits::Set'>Set</a>&lt;<a class='enum' href='../termios/output/enum.Flag.html' title='termios::output::Flag'>Flag</a>&gt; for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.set' class='method'><code>fn <a href='../termios/traits/trait.Set.html#method.set' class='fnname'>set</a>(&amp;mut self, flag: <a class='enum' href='../termios/output/enum.Flag.html' title='termios::output::Flag'>Flag</a>)</code></h4>
+</div><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#method.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='http://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='http://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'></div><h3 class='impl'><code>impl <a class='trait' href='http://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h3><div class='impl-items'><h4 id='method.clone' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='struct' href='../termios/struct.Termios.html' title='termios::Termios'>Termios</a></code></h4>
+<h4 id='method.clone_from' class='method'><code>fn <a href='http://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <div id="help" class="hidden">
+        <div class="shortcuts">
+            <h1>Keyboard shortcuts</h1>
+            <dl>
+                <dt>?</dt>
+                <dd>Show this help dialog</dd>
+                <dt>S</dt>
+                <dd>Focus the search field</dd>
+                <dt>&larrb;</dt>
+                <dd>Move up in search results</dd>
+                <dt>&rarrb;</dt>
+                <dd>Move down in search results</dd>
+                <dt>&#9166;</dt>
+                <dd>Go to active search result</dd>
+            </dl>
+        </div>
+        <div class="infos">
+            <h1>Search tricks</h1>
+            <p>
+                Prefix searches with a type followed by a colon (e.g.
+                <code>fn:</code>) to restrict the search to a given type.
+            </p>
+            <p>
+                Accepted types are: <code>fn</code>, <code>mod</code>,
+                <code>struct</code>, <code>enum</code>,
+                <code>trait</code>, <code>typedef</code> (or
+                <code>tdef</code>).
+            </p>
+            <p>
+                Search functions by type signature (e.g.
+                <code>vec -> usize</code>)
+            </p>
+        </div>
+    </div>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "termios";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../jquery.js"></script>
+    <script src="../main.js"></script>
+    
+    <script async src="../search-index.js"></script>
+</body>
+</html>
