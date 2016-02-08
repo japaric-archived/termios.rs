@@ -1,3 +1,15 @@
+# Status
+
+This project has been **DEPRECATED**. You can use [termios] as a replacement.
+
+[termios]: https://crates.io/crates/termios
+
+This project won't receive further updates or bug fixes.
+
+-- @japaric, 2016/02/08
+
+---
+
 # `termios.rs`
 
 Termios bindings + safe wrapper
